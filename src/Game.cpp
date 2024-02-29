@@ -251,6 +251,8 @@ void Game::mainloop()
     sun->activateShadows();
     scene.add(sun);
 
+    sun->setMenu(menu, U"Sun");
+
 
     menu.batch();
     scene2D.updateAllObjects();
