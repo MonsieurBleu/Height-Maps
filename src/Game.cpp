@@ -165,7 +165,11 @@ bool Game::userInput(GLFWKeyInfo input)
             depthOnlyMaterial->reset();
             GameGlobals::PBR->reset();
             GameGlobals::PBRstencil->reset();
+            GameGlobals::PBRHeightMap->reset();
+            GameGlobals::PBRHeightMap.depthOnly->reset();
             skyboxMaterial->reset();
+
+
             break;
         
         case GLFW_KEY_F6:
@@ -222,7 +226,7 @@ void Game::mainloop()
 
     ModelRef floor = newModel(GameGlobals::PBRHeightMap);
     floor->loadFromFolder("ressources/models/ground/");
-    floor->state.scaleScalar(4.0);
+    floor->state.scaleScalar(16.0);
     scene.add(floor);
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -259,24 +263,34 @@ void Game::mainloop()
     fuiBatch->batch();
 
    
-    Texture2D HeightMaps = Texture2D().loadFromFile("ressources/maps/RuggedTerrain.png")
-        .setFormat(GL_RGB)
-        .setInternalFormat(GL_RGB)
-        .setPixelType(GL_UNSIGNED_BYTE)
-        .setWrapMode(GL_CLAMP_TO_BORDER)
-        .generate()
-        ; 
-    // Texture2D HeightMaps = Texture2D().loadFromFileHDR("ressources/maps/RuggedTerrain.hdr")
-    //     .setFormat(GL_R)
-    //     .setInternalFormat(GL_R32F)
-    //     .setPixelType(GL_FLOAT_R32_NV)
+    // Texture2D HeightMaps = Texture2D().loadFromFileHDR("ressources/maps/RuggedTerrain.png")
+    //     .setFormat(GL_RGB)
+    //     .setInternalFormat(GL_RGB8)
+    //     .setPixelType(GL_UNSIGNED_BYTE)
+    //     .setWrapMode(GL_CLAMP_TO_BORDER)
     //     .generate()
-    // ;
+    //     ; 
+    Texture2D HeightMaps = Texture2D().loadFromFileHDR("ressources/maps/RuggedTerrain.hdr")
+        .setFormat(GL_RGB)
+        .setInternalFormat(GL_RGB32F)
+        .setPixelType(GL_FLOAT)
+        .setWrapMode(GL_REPEAT) 
+        // .setWrapMode(GL_CLAMP_TO_BORDER)
+        .generate()
+    ;
     floor->setMap(HeightMaps, 2);
+    Texture2D DispMaps = Texture2D().loadFromFileHDR("ressources/models/ground/disp.hdr")
+        .setFormat(GL_RGB)
+        .setInternalFormat(GL_RGB32F)
+        .setPixelType(GL_FLOAT)
+        .setWrapMode(GL_REPEAT)
+        .generate()
+    ;
+    floor->setMap(DispMaps, 3);
 
 
     state = AppState::run;
-    std::thread physicsThreads(&Game::physicsLoop, this);
+    // std::thread physicsThreads(&Game::physicsLoop, this);
 
     glLineWidth(1.0);
 
@@ -342,5 +356,5 @@ void Game::mainloop()
         mainloopEndRoutine();
     }
 
-    physicsThreads.join();
+    // physicsThreads.join();
 }
