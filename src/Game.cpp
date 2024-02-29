@@ -17,7 +17,6 @@ void Game::init(int paramSample)
     App::init();
 
     // activateMainSceneBindlessTextures();
-    
 
     setIcon("ressources/icon.png");
 
@@ -63,7 +62,7 @@ void Game::init(int paramSample)
     depthOnlyHeightMapMaterial = MeshMaterial(
         new ShaderProgram(
             "shader/depthOnlyStencil.frag",
-            "shader/foward/basicInstance.vert",
+            "shader/special/heightMaps.vert",
             ""));
 
     GameGlobals::PBR = MeshMaterial(
@@ -84,7 +83,7 @@ void Game::init(int paramSample)
     GameGlobals::PBRHeightMap = MeshMaterial(
         new ShaderProgram(
             "shader/foward/PBR.frag",
-            "shader/foward/basicInstance.vert",
+            "shader/special/heightMaps.vert",
             "",
             globals.standartShaderUniform3D()));
 
@@ -221,8 +220,9 @@ void Game::mainloop()
     skybox->state.scaleScalar(1E6);
     scene.add(skybox);
 
-    ModelRef floor = newModel(GameGlobals::PBR);
+    ModelRef floor = newModel(GameGlobals::PBRHeightMap);
     floor->loadFromFolder("ressources/models/ground/");
+    floor->state.scaleScalar(4.0);
     scene.add(floor);
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -247,22 +247,31 @@ void Game::mainloop()
             .setIntensity(1.0));
 
     sun->cameraResolution = vec2(2048);
-    sun->shadowCameraSize = vec2(90, 90);
+    sun->shadowCameraSize = vec2(50, 50);
     sun->activateShadows();
     scene.add(sun);
 
-
-    // physicsTicks.setMenu(menu);
-    // sun->setMenu(menu, U"Sun");
-
-    BenchTimer cullTimer("Frustum Culling");
-    cullTimer.setMenu(menu);
 
     menu.batch();
     scene2D.updateAllObjects();
     fuiBatch->batch();
 
    
+    Texture2D HeightMaps = Texture2D().loadFromFile("ressources/maps/RuggedTerrain.png")
+        .setFormat(GL_RGB)
+        .setInternalFormat(GL_RGB)
+        .setPixelType(GL_UNSIGNED_BYTE)
+        .setWrapMode(GL_CLAMP_TO_BORDER)
+        .generate()
+        ; 
+    // Texture2D HeightMaps = Texture2D().loadFromFileHDR("ressources/maps/RuggedTerrain.hdr")
+    //     .setFormat(GL_R)
+    //     .setInternalFormat(GL_R32F)
+    //     .setPixelType(GL_FLOAT_R32_NV)
+    //     .generate()
+    // ;
+    floor->setMap(HeightMaps, 2);
+
 
     state = AppState::run;
     std::thread physicsThreads(&Game::physicsLoop, this);
@@ -303,9 +312,7 @@ void Game::mainloop()
         scene.generateShadowMaps();
         renderBuffer.activate();
 
-        cullTimer.start();
         scene.cull();
-        cullTimer.end();
 
         /* 3D Early Depth Testing */
         scene.depthOnlyDraw(*globals.currentCamera, true);
