@@ -225,7 +225,7 @@ void Game::mainloop()
     scene.add(skybox);
 
     ModelRef floor = newModel(GameGlobals::PBRHeightMap);
-    floor->loadFromFolder("ressources/models/ground/");
+    floor->loadFromFolderVulpine("ressources/models/ground/");
     floor->state.scaleScalar(16.0);
     scene.add(floor);
 
@@ -270,15 +270,16 @@ void Game::mainloop()
     //     .setWrapMode(GL_CLAMP_TO_BORDER)
     //     .generate()
     //     ; 
+    
     Texture2D HeightMaps = Texture2D().loadFromFileHDR("ressources/maps/RuggedTerrain.hdr")
         .setFormat(GL_RGB)
         .setInternalFormat(GL_RGB32F)
         .setPixelType(GL_FLOAT)
         .setWrapMode(GL_REPEAT) 
-        // .setWrapMode(GL_CLAMP_TO_BORDER)
         .generate()
     ;
     floor->setMap(HeightMaps, 2);
+
     Texture2D DispMaps = Texture2D().loadFromFileHDR("ressources/models/ground/disp.hdr")
         .setFormat(GL_RGB)
         .setInternalFormat(GL_RGB32F)
