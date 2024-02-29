@@ -31,6 +31,8 @@ private:
 
     ObjectGroupRef helpers;
 
+    bool wireframe = false;
+
 public:
     Game(GLFWwindow *window);
     void init(int paramSample);

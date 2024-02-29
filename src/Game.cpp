@@ -139,6 +139,10 @@ bool Game::userInput(GLFWKeyInfo input)
         case GLFW_KEY_ESCAPE:
             state = quit;
             break;
+        
+        case GLFW_KEY_F1 :
+            wireframe = !wireframe;
+            break;
 
         case GLFW_KEY_F2:
             globals.currentCamera->toggleMouseFollow();
@@ -222,10 +226,10 @@ void Game::mainloop()
     skybox->depthWrite = true;
     skybox->state.frustumCulled = false;
     skybox->state.scaleScalar(1E6);
-    scene.add(skybox);
+    // scene.add(skybox);
 
     ModelRef floor = newModel(GameGlobals::PBRHeightMap);
-    floor->loadFromFolderVulpine("ressources/models/ground/");
+    floor->loadFromFolder("ressources/models/ground/");
     floor->state.scaleScalar(16.0);
     scene.add(floor);
 
@@ -331,6 +335,11 @@ void Game::mainloop()
 
         scene.cull();
 
+        if(wireframe)
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        else    
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
         /* 3D Early Depth Testing */
         scene.depthOnlyDraw(*globals.currentCamera, true);
         glDepthFunc(GL_EQUAL);
@@ -340,6 +349,7 @@ void Game::mainloop()
         scene.genLightBuffer();
         scene.draw();
         renderBuffer.deactivate();
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         /* Post Processing */
         renderBuffer.bindTextures();
