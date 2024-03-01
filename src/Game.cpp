@@ -4,6 +4,7 @@
 #include <CompilingOptions.hpp>
 #include <MathsUtils.hpp>
 #include <Audio.hpp>
+#include <VulpineAssets.hpp>
 
 #include <thread>
 #include <fstream>
@@ -230,8 +231,7 @@ void Game::mainloop()
 
     ModelRef floor = newModel(GameGlobals::PBRHeightMap);
     floor->loadFromFolder("ressources/models/ground/");
-    floor->state.scaleScalar(16.0);
-    scene.add(floor);
+    floor->state.scaleScalar(1e2f).setPosition(vec3(0, -10, 0));
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_DEPTH_TEST);
@@ -275,14 +275,15 @@ void Game::mainloop()
     //     .generate()
     //     ; 
     
-    Texture2D HeightMaps = Texture2D().loadFromFileHDR("ressources/maps/RuggedTerrain.hdr")
+    Texture2D HeightMap = Texture2D().loadFromFileHDR("ressources/maps/RuggedTerrain.hdr")
         .setFormat(GL_RGB)
         .setInternalFormat(GL_RGB32F)
         .setPixelType(GL_FLOAT)
         .setWrapMode(GL_REPEAT) 
+        .setFilter(GL_LINEAR)
         .generate()
     ;
-    floor->setMap(HeightMaps, 2);
+    floor->setMap(HeightMap, 2);
 
     Texture2D DispMaps = Texture2D().loadFromFileHDR("ressources/models/ground/disp.hdr")
         .setFormat(GL_RGB)
@@ -292,6 +293,60 @@ void Game::mainloop()
         .generate()
     ;
     floor->setMap(DispMaps, 3);
+
+
+    MeshMaterial PBRLod(new ShaderProgram(
+        "shader/foward/PBR.frag",
+        "shader/special/lod.vert",
+        "shader/special/lod.tesc",
+        "shader/special/lod.tese",
+        globals.standartShaderUniform3D()
+    ));
+
+    PBRLod.depthOnly = MeshMaterial(new ShaderProgram(
+        "shader/foward/basic.frag",
+        "shader/special/lod.vert",
+        "shader/special/lod.tesc",
+        "shader/special/lod.tese",
+        globals.standartShaderUniform3D()
+    ));
+
+    floor->setMaterial(PBRLod);
+    floor->defaultMode = GL_PATCHES;
+    glPatchParameteri(GL_PATCH_VERTICES, 3);
+    scene.add(floor);
+
+
+    const std::string materialGeom[] = 
+    {
+        "Cube", "Grid", "Plane", "Icosphere", "Sphere", "Torus"
+    };
+
+    Texture2D materialCE  = Texture2D().loadFromFileKTX("ressources/models/Cobblestone/CE.ktx");
+    Texture2D materialNRM = Texture2D().loadFromFileKTX("ressources/models/Cobblestone/NRM.ktx");
+    Texture2D materialDisp = Texture2D().loadFromFile("ressources/models/Cobblestone/height.png")
+        .setFormat(GL_RGB)
+        .setInternalFormat(GL_RGB8)
+        .setPixelType(GL_UNSIGNED_BYTE)
+        .setWrapMode(GL_REPEAT)
+        .generate()
+    ;
+
+    ObjectGroupRef materialTesters = newObjectGroup();
+    for(size_t i = 0; i < 6; i++)
+    {
+        ModelRef g = newModel(
+            PBRLod,
+            loadVulpineMesh("ressources/models/"+materialGeom[i]+".vulpineMesh"),
+            ModelState3D().setPosition(vec3(i*3, 0, 0))
+        );
+        g->defaultMode = GL_PATCHES;
+        g->setMap(materialCE, 0);
+        g->setMap(materialNRM, 1);
+        g->setMap(materialDisp, 3);
+        materialTesters->add(g);
+    }
+    scene.add(materialTesters);
 
 
     state = AppState::run;
