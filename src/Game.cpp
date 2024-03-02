@@ -149,13 +149,13 @@ bool Game::userInput(GLFWKeyInfo input)
             globals.currentCamera->toggleMouseFollow();
             break;
 
-        case GLFW_KEY_1:
-            Bloom.toggle();
-            break;
+        // case GLFW_KEY_1:
+        //     Bloom.toggle();
+        //     break;
 
-        case GLFW_KEY_2:
-            SSAO.toggle();
-            break;
+        // case GLFW_KEY_2:
+        //     SSAO.toggle();
+        //     break;
 
         case GLFW_KEY_F5:
             #ifdef _WIN32
@@ -241,7 +241,7 @@ void Game::mainloop()
     FastUI_context ui(fuiBatch, FUIfont, scene2D, defaultFontMaterial);
     FastUI_valueMenu menu(ui, {});
 
-    menu->state.setPosition(vec3(-0.9, 0.5, 0)).scaleScalar(0.8);
+    menu->state.setPosition(vec3(-0.9, 0.5, 0)).scaleScalar(0.65);
     globals.appTime.setMenuConst(menu);
     globals.cpuTime.setMenu(menu);
     globals.gpuTime.setMenu(menu);
@@ -260,12 +260,6 @@ void Game::mainloop()
     scene.add(sun);
 
     sun->setMenu(menu, U"Sun");
-
-
-    menu.batch();
-    scene2D.updateAllObjects();
-    fuiBatch->batch();
-
    
     // Texture2D HeightMaps = Texture2D().loadFromFileHDR("ressources/maps/RuggedTerrain.png")
     //     .setFormat(GL_RGB)
@@ -313,46 +307,57 @@ void Game::mainloop()
 
     floor->setMaterial(PBRLod);
     floor->defaultMode = GL_PATCHES;
+    
+    // vec4 tmp(1);
+    // floor->baseUniforms.add(ShaderUniform(&tmp, 11));
+    // floor->baseUniforms.add(ShaderUniform(&tmp, 12));
+    floor->tessActivate(vec2(1, 6), vec2(1, 50));
+    floor->setMenu(menu, U"Ground Model");
     glPatchParameteri(GL_PATCH_VERTICES, 3);
     scene.add(floor);
 
 
-    const std::string materialGeom[] = 
-    {
-        "Cube", "Grid", "Plane", "Icosphere", "Sphere", "Torus"
-    };
+    // const std::string materialGeom[] = 
+    // {
+    //     "Cube", "Grid", "Plane", "Icosphere", "Sphere", "Torus"
+    // };
 
-    Texture2D materialCE  = Texture2D().loadFromFileKTX("ressources/models/Cobblestone/CE.ktx");
-    Texture2D materialNRM = Texture2D().loadFromFileKTX("ressources/models/Cobblestone/NRM.ktx");
-    Texture2D materialDisp = Texture2D().loadFromFile("ressources/models/Cobblestone/height.png")
-        .setFormat(GL_RGB)
-        .setInternalFormat(GL_RGB8)
-        .setPixelType(GL_UNSIGNED_BYTE)
-        .setWrapMode(GL_REPEAT)
-        .generate()
-    ;
+    // Texture2D materialCE  = Texture2D().loadFromFileKTX("ressources/models/Cobblestone/CE.ktx");
+    // Texture2D materialNRM = Texture2D().loadFromFileKTX("ressources/models/Cobblestone/NRM.ktx");
+    // Texture2D materialDisp = Texture2D().loadFromFile("ressources/models/Cobblestone/height.png")
+    //     .setFormat(GL_RGB)
+    //     .setInternalFormat(GL_RGB8)
+    //     .setPixelType(GL_UNSIGNED_BYTE)
+    //     .setWrapMode(GL_REPEAT)
+    //     .generate()
+    // ;
 
-    ObjectGroupRef materialTesters = newObjectGroup();
-    for(size_t i = 0; i < 6; i++)
-    {
-        ModelRef g = newModel(
-            PBRLod,
-            loadVulpineMesh("ressources/models/"+materialGeom[i]+".vulpineMesh"),
-            ModelState3D().setPosition(vec3(i*3, 0, 0))
-        );
-        g->defaultMode = GL_PATCHES;
-        g->setMap(materialCE, 0);
-        g->setMap(materialNRM, 1);
-        g->setMap(materialDisp, 3);
-        materialTesters->add(g);
-    }
-    scene.add(materialTesters);
+    // ObjectGroupRef materialTesters = newObjectGroup();
+    // for(size_t i = 0; i < 6; i++)
+    // {
+    //     ModelRef g = newModel(
+    //         PBRLod,
+    //         loadVulpineMesh("ressources/models/"+materialGeom[i]+".vulpineMesh"),
+    //         ModelState3D().setPosition(vec3(i*3, 0, 0))
+    //     );
+    //     g->defaultMode = GL_PATCHES;
+    //     g->setMap(materialCE, 0);
+    //     g->setMap(materialNRM, 1);
+    //     g->setMap(materialDisp, 3);
+    //     materialTesters->add(g);
+    // }
+    // scene.add(materialTesters);
 
 
     state = AppState::run;
     // std::thread physicsThreads(&Game::physicsLoop, this);
 
     glLineWidth(1.0);
+
+    menu.batch();
+    scene2D.updateAllObjects();
+    fuiBatch->batch();
+
 
     /* Main Loop */
     while (state != AppState::quit)
