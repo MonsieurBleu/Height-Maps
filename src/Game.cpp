@@ -149,13 +149,13 @@ bool Game::userInput(GLFWKeyInfo input)
             globals.currentCamera->toggleMouseFollow();
             break;
 
-        // case GLFW_KEY_1:
-        //     Bloom.toggle();
-        //     break;
+        case GLFW_KEY_1:
+            Bloom.toggle();
+            break;
 
-        // case GLFW_KEY_2:
-        //     SSAO.toggle();
-        //     break;
+        case GLFW_KEY_2:
+            SSAO.toggle();
+            break;
 
         case GLFW_KEY_F5:
             #ifdef _WIN32
@@ -223,14 +223,17 @@ void Game::mainloop()
     ModelRef skybox = newModel(skyboxMaterial);
     skybox->loadFromFolder("ressources/models/skybox/", true, false);
 
+    Texture2D reflectTexture = Texture2D().loadFromFile("ressources/models/skybox/quarry_cloudy_2k.jpg").generate();
+
     // skybox->invertFaces = true;
     skybox->depthWrite = true;
     skybox->state.frustumCulled = false;
     skybox->state.scaleScalar(1E6);
-    // scene.add(skybox);
+    scene.add(skybox);
 
     ModelRef floor = newModel(GameGlobals::PBRHeightMap);
-    floor->loadFromFolder("ressources/models/ground/");
+    // floor->loadFromFolder("ressources/models/ground/");
+    floor->setVao(readOBJ("ressources/models/ground/model.obj"));
     floor->state.scaleScalar(1e2f).setPosition(vec3(0, -10, 0));
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -256,7 +259,7 @@ void Game::mainloop()
 
     sun->cameraResolution = vec2(2048);
     sun->shadowCameraSize = vec2(50, 50);
-    sun->activateShadows();
+    // sun->activateShadows();
     scene.add(sun);
 
     sun->setMenu(menu, U"Sun");
@@ -279,14 +282,14 @@ void Game::mainloop()
     ;
     floor->setMap(HeightMap, 2);
 
-    Texture2D DispMaps = Texture2D().loadFromFileHDR("ressources/models/ground/disp.hdr")
-        .setFormat(GL_RGB)
-        .setInternalFormat(GL_RGB32F)
-        .setPixelType(GL_FLOAT)
-        .setWrapMode(GL_REPEAT)
-        .generate()
-    ;
-    floor->setMap(DispMaps, 3);
+    // Texture2D DispMaps = Texture2D().loadFromFileHDR("ressources/models/ground/disp.hdr")
+    //     .setFormat(GL_RGB)
+    //     .setInternalFormat(GL_RGB32F)
+    //     .setPixelType(GL_FLOAT)
+    //     .setWrapMode(GL_REPEAT)
+    //     .generate()
+    // ;
+    // floor->setMap(DispMaps, 3);
 
 
     MeshMaterial PBRLod(new ShaderProgram(
@@ -311,7 +314,9 @@ void Game::mainloop()
     // vec4 tmp(1);
     // floor->baseUniforms.add(ShaderUniform(&tmp, 11));
     // floor->baseUniforms.add(ShaderUniform(&tmp, 12));
-    floor->tessActivate(vec2(1, 6), vec2(1, 50));
+    floor->tessActivate(vec2(1, 16), vec2(10, 50));
+    floor->tessDisplacementFactors(25, 0.005);
+    floor->tessHeighFactors(1, 2);
     floor->setMenu(menu, U"Ground Model");
     glPatchParameteri(GL_PATCH_VERTICES, 3);
     scene.add(floor);
@@ -322,15 +327,20 @@ void Game::mainloop()
     //     "Cube", "Grid", "Plane", "Icosphere", "Sphere", "Torus"
     // };
 
-    // Texture2D materialCE  = Texture2D().loadFromFileKTX("ressources/models/Cobblestone/CE.ktx");
-    // Texture2D materialNRM = Texture2D().loadFromFileKTX("ressources/models/Cobblestone/NRM.ktx");
-    // Texture2D materialDisp = Texture2D().loadFromFile("ressources/models/Cobblestone/height.png")
-    //     .setFormat(GL_RGB)
-    //     .setInternalFormat(GL_RGB8)
-    //     .setPixelType(GL_UNSIGNED_BYTE)
-    //     .setWrapMode(GL_REPEAT)
-    //     .generate()
-    // ;
+    Texture2D materialCE  = Texture2D().loadFromFileKTX("ressources/models/Snow/CE.ktx");
+    Texture2D materialNRM = Texture2D().loadFromFileKTX("ressources/models/Snow/NRM.ktx");
+    Texture2D materialDisp = Texture2D().loadFromFile("ressources/models/Cobblestone/height.png")
+        .setFormat(GL_RGB)
+        .setInternalFormat(GL_RGB8)
+        .setPixelType(GL_UNSIGNED_BYTE)
+        .setWrapMode(GL_REPEAT)
+        .generate()
+    ;
+
+    floor->setMap(materialCE,   0);
+    floor->setMap(materialNRM,  1);
+    floor->setMap(materialDisp, 3);
+
 
     // ObjectGroupRef materialTesters = newObjectGroup();
     // for(size_t i = 0; i < 6; i++)
@@ -405,7 +415,8 @@ void Game::mainloop()
         glDepthFunc(GL_EQUAL);
 
         /* 3D Render */
-        skybox->bindMap(0, 4);
+        // skybox->bindMap(0, 4);
+        reflectTexture.bind(4);
         scene.genLightBuffer();
         scene.draw();
         renderBuffer.deactivate();
