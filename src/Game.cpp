@@ -62,9 +62,12 @@ void Game::init(int paramSample)
 
     depthOnlyHeightMapMaterial = MeshMaterial(
         new ShaderProgram(
-            "shader/depthOnlyStencil.frag",
-            "shader/special/heightMaps.vert",
-            ""));
+                "shader/foward/basic.frag",
+                "shader/special/lod.vert",
+                "shader/special/lod.tesc",
+                "shader/special/lod.tese",
+                globals.standartShaderUniform3D()
+            ));
 
     GameGlobals::PBR = MeshMaterial(
         new ShaderProgram(
@@ -84,9 +87,11 @@ void Game::init(int paramSample)
     GameGlobals::PBRHeightMap = MeshMaterial(
         new ShaderProgram(
             "shader/foward/PBR.frag",
-            "shader/special/heightMaps.vert",
-            "",
-            globals.standartShaderUniform3D()));
+            "shader/special/lod.vert",
+            "shader/special/lod.tesc",
+            "shader/special/lod.tese",
+            globals.standartShaderUniform3D()
+        ));
 
     skyboxMaterial = MeshMaterial(
         new ShaderProgram(
@@ -234,7 +239,7 @@ void Game::mainloop()
     ModelRef floor = newModel(GameGlobals::PBRHeightMap);
     // floor->loadFromFolder("ressources/models/ground/");
     floor->setVao(readOBJ("ressources/models/ground/model.obj"));
-    floor->state.scaleScalar(1e2f).setPosition(vec3(0, -10, 0));
+    floor->state.scaleScalar(1e2f).setPosition(vec3(0, 30, 0));
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_DEPTH_TEST);
@@ -257,9 +262,9 @@ void Game::mainloop()
             .setDirection(normalize(vec3(-1.0, -1.0, 0.0)))
             .setIntensity(1.0));
 
-    sun->cameraResolution = vec2(2048);
-    sun->shadowCameraSize = vec2(50, 50);
-    // sun->activateShadows();
+    sun->cameraResolution = vec2(4096);
+    sun->shadowCameraSize = vec2(100, 100);
+    sun->activateShadows();
     scene.add(sun);
 
     sun->setMenu(menu, U"Sun");
@@ -280,6 +285,7 @@ void Game::mainloop()
         .setFilter(GL_LINEAR)
         .generate()
     ;
+    // Texture2D HeightMap = Texture2D().loadFromFileKTX("ressources/maps/RuggedTerrain.ktx");
     floor->setMap(HeightMap, 2);
 
     // Texture2D DispMaps = Texture2D().loadFromFileHDR("ressources/models/ground/disp.hdr")
@@ -291,72 +297,51 @@ void Game::mainloop()
     // ;
     // floor->setMap(DispMaps, 3);
 
-
-    MeshMaterial PBRLod(new ShaderProgram(
-        "shader/foward/PBR.frag",
-        "shader/special/lod.vert",
-        "shader/special/lod.tesc",
-        "shader/special/lod.tese",
-        globals.standartShaderUniform3D()
-    ));
-
-    PBRLod.depthOnly = MeshMaterial(new ShaderProgram(
-        "shader/foward/basic.frag",
-        "shader/special/lod.vert",
-        "shader/special/lod.tesc",
-        "shader/special/lod.tese",
-        globals.standartShaderUniform3D()
-    ));
-
-    floor->setMaterial(PBRLod);
     floor->defaultMode = GL_PATCHES;
     
     // vec4 tmp(1);
     // floor->baseUniforms.add(ShaderUniform(&tmp, 11));
     // floor->baseUniforms.add(ShaderUniform(&tmp, 12));
     floor->tessActivate(vec2(1, 16), vec2(10, 50));
-    floor->tessDisplacementFactors(25, 0.005);
+    floor->tessDisplacementFactors(25, 0.001);
     floor->tessHeighFactors(1, 2);
     floor->setMenu(menu, U"Ground Model");
+    floor->state.frustumCulled = false;
     glPatchParameteri(GL_PATCH_VERTICES, 3);
     scene.add(floor);
 
 
-    // const std::string materialGeom[] = 
-    // {
-    //     "Cube", "Grid", "Plane", "Icosphere", "Sphere", "Torus"
-    // };
+    const std::string materialGeom[] = 
+    {
+        "Cube", "Grid", "Plane", "Icosphere", "Sphere", "Torus"
+    };
 
     Texture2D materialCE  = Texture2D().loadFromFileKTX("ressources/models/Snow/CE.ktx");
     Texture2D materialNRM = Texture2D().loadFromFileKTX("ressources/models/Snow/NRM.ktx");
-    Texture2D materialDisp = Texture2D().loadFromFile("ressources/models/Cobblestone/height.png")
-        .setFormat(GL_RGB)
-        .setInternalFormat(GL_RGB8)
-        .setPixelType(GL_UNSIGNED_BYTE)
-        .setWrapMode(GL_REPEAT)
-        .generate()
-    ;
-
+    
     floor->setMap(materialCE,   0);
     floor->setMap(materialNRM,  1);
-    floor->setMap(materialDisp, 3);
+    // floor->setMap(materialDisp, 3);
 
 
-    // ObjectGroupRef materialTesters = newObjectGroup();
-    // for(size_t i = 0; i < 6; i++)
-    // {
-    //     ModelRef g = newModel(
-    //         PBRLod,
-    //         loadVulpineMesh("ressources/models/"+materialGeom[i]+".vulpineMesh"),
-    //         ModelState3D().setPosition(vec3(i*3, 0, 0))
-    //     );
-    //     g->defaultMode = GL_PATCHES;
-    //     g->setMap(materialCE, 0);
-    //     g->setMap(materialNRM, 1);
-    //     g->setMap(materialDisp, 3);
-    //     materialTesters->add(g);
-    // }
-    // scene.add(materialTesters);
+    ObjectGroupRef materialTesters = newObjectGroup();
+    for(size_t i = 0; i < 6; i++)
+    {
+        ModelRef g = newModel(
+            GameGlobals::PBRHeightMap,
+            loadVulpineMesh("ressources/models/"+materialGeom[i]+".vulpineMesh"),
+            ModelState3D().setPosition(vec3(i*3, 0, 0))
+        );
+        g->defaultMode = GL_PATCHES;
+        g->setMap(materialCE, 0);
+        g->setMap(materialNRM, 1);
+        // g->setMap(materialDisp, 3);
+        g->tessActivate(vec2(1, 10), vec2(2, 50));
+        g->tessDisplacementFactors(1, 0.1);
+        materialTesters->add(g);
+    }
+    materialTesters->state.scaleScalar(5.0);
+    scene.add(materialTesters);
 
 
     state = AppState::run;
@@ -368,6 +353,10 @@ void Game::mainloop()
     scene2D.updateAllObjects();
     fuiBatch->batch();
 
+    
+    std::shared_ptr<DirectionalLightHelper> sunhelper(new DirectionalLightHelper(sun));
+    sunhelper->state.scaleScalar(10).setPosition(vec3(0, -20, 0));
+    scene.add(sunhelper);
 
     /* Main Loop */
     while (state != AppState::quit)
