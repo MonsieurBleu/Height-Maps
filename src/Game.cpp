@@ -311,37 +311,37 @@ void Game::mainloop()
     scene.add(floor);
 
 
-    const std::string materialGeom[] = 
+    const std::string terrainTextures[] = 
     {
-        "Cube", "Grid", "Plane", "Icosphere", "Sphere", "Torus"
+        "snowdrift1_ue", "limestone5-bl", "leafy-grass2-bl", "forest-floor-bl-1"
     };
 
-    Texture2D materialCE  = Texture2D().loadFromFileKTX("ressources/models/Snow/CE.ktx");
-    Texture2D materialNRM = Texture2D().loadFromFileKTX("ressources/models/Snow/NRM.ktx");
-    
-    floor->setMap(materialCE,   0);
-    floor->setMap(materialNRM,  1);
-    // floor->setMap(materialDisp, 3);
+    floor->setMap(Texture2D().loadFromFileKTX(
+        ("ressources/models/terrain/"+terrainTextures[2]+"CE.ktx2").c_str()), 
+        0);
+    floor->setMap(Texture2D().loadFromFileKTX(
+        ("ressources/models/terrain/"+terrainTextures[2]+"NRM.ktx2").c_str()), 
+        1);
 
+    floor->setMap(Texture2D()
+        .loadFromFile("ressources/models/terrain/terrainMap.png")
+        .setFormat(GL_RGBA)
+        .setInternalFormat(GL_RGBA8)
+        .generate(), 3);
 
-    ObjectGroupRef materialTesters = newObjectGroup();
-    for(size_t i = 0; i < 6; i++)
+    int base = 4;
+    int i = 0;
+    for(auto str : terrainTextures)
     {
-        ModelRef g = newModel(
-            GameGlobals::PBRHeightMap,
-            loadVulpineMesh("ressources/models/"+materialGeom[i]+".vulpineMesh"),
-            ModelState3D().setPosition(vec3(i*3, 0, 0))
-        );
-        g->defaultMode = GL_PATCHES;
-        g->setMap(materialCE, 0);
-        g->setMap(materialNRM, 1);
-        // g->setMap(materialDisp, 3);
-        g->tessActivate(vec2(1, 10), vec2(2, 50));
-        g->tessDisplacementFactors(1, 0.1);
-        materialTesters->add(g);
+        floor->setMap(Texture2D().loadFromFileKTX(
+            ("ressources/models/terrain/"+str+"CE.ktx2").c_str()), 
+            base + i);
+        floor->setMap(Texture2D().loadFromFileKTX(
+            ("ressources/models/terrain/"+str+"NRM.ktx2").c_str()), 
+            base + 4 + i);
+        
+        i++;
     }
-    materialTesters->state.scaleScalar(5.0);
-    scene.add(materialTesters);
 
 
     state = AppState::run;
