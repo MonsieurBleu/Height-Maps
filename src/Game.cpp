@@ -262,7 +262,7 @@ void Game::mainloop()
 
     sun->cameraResolution = vec2(4096*1.5);
     sun->shadowCameraSize = vec2(300, 300);
-    // sun->activateShadows();
+    sun->activateShadows();
     scene.add(sun);
 
     sun->setMenu(menu, U"Sun");
