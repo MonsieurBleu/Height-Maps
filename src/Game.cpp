@@ -66,7 +66,8 @@ void Game::init(int paramSample)
                 "shader/special/lod.vert",
                 "shader/special/lod.tesc",
                 "shader/special/lod.tese",
-                globals.standartShaderUniform3D()
+                globals.standartShaderUniform3D(),
+                "#define USING_TERRAIN_RENDERING"
             ));
 
     GameGlobals::PBR = MeshMaterial(
@@ -90,7 +91,8 @@ void Game::init(int paramSample)
             "shader/special/lod.vert",
             "shader/special/lod.tesc",
             "shader/special/lod.tese",
-            globals.standartShaderUniform3D()
+            globals.standartShaderUniform3D(),
+            "#define USING_TERRAIN_RENDERING"
         ));
 
     skyboxMaterial = MeshMaterial(
@@ -262,8 +264,8 @@ void Game::mainloop()
             .setDirection(normalize(vec3(-1.0, -1.0, 0.0)))
             .setIntensity(1.0));
 
-    sun->cameraResolution = vec2(4096);
-    sun->shadowCameraSize = vec2(100, 100);
+    sun->cameraResolution = vec2(4096*1.5);
+    sun->shadowCameraSize = vec2(300, 300);
     sun->activateShadows();
     scene.add(sun);
 
@@ -302,8 +304,8 @@ void Game::mainloop()
     // vec4 tmp(1);
     // floor->baseUniforms.add(ShaderUniform(&tmp, 11));
     // floor->baseUniforms.add(ShaderUniform(&tmp, 12));
-    floor->tessActivate(vec2(1, 16), vec2(10, 50));
-    floor->tessDisplacementFactors(25, 0.001);
+    floor->tessActivate(vec2(1, 12), vec2(10, 150));
+    floor->tessDisplacementFactors(30, 0.005);
     floor->tessHeighFactors(1, 2);
     floor->setMenu(menu, U"Ground Model");
     floor->state.frustumCulled = false;
@@ -395,9 +397,15 @@ void Game::mainloop()
         scene.cull();
 
         if(wireframe)
+        {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        else    
+            skybox->state.hide = HIDE;
+        }
+        else
+        {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            skybox->state.hide = SHOW;
+        }    
 
         /* 3D Early Depth Testing */
         scene.depthOnlyDraw(*globals.currentCamera, true);
