@@ -66,7 +66,8 @@ void Game::init(int paramSample)
                 "shader/special/lod.vert",
                 "shader/special/lod.tesc",
                 "shader/special/lod.tese",
-                globals.standartShaderUniform3D()
+                globals.standartShaderUniform3D(),
+                "#define USING_TERRAIN_RENDERING"
             ));
 
     GameGlobals::PBR = MeshMaterial(
@@ -90,7 +91,8 @@ void Game::init(int paramSample)
             "shader/special/lod.vert",
             "shader/special/lod.tesc",
             "shader/special/lod.tese",
-            globals.standartShaderUniform3D()
+            globals.standartShaderUniform3D(),
+            "#define USING_TERRAIN_RENDERING"
         ));
 
     skyboxMaterial = MeshMaterial(
@@ -236,10 +238,6 @@ void Game::mainloop()
     skybox->state.scaleScalar(1E6);
     scene.add(skybox);
 
-    ModelRef floor = newModel(GameGlobals::PBRHeightMap);
-    // floor->loadFromFolder("ressources/models/ground/");
-    floor->setVao(readOBJ("ressources/models/ground/model.obj"));
-    floor->state.scaleScalar(1e2f).setPosition(vec3(0, 30, 0));
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_DEPTH_TEST);
@@ -262,8 +260,8 @@ void Game::mainloop()
             .setDirection(normalize(vec3(-1.0, -1.0, 0.0)))
             .setIntensity(1.0));
 
-    sun->cameraResolution = vec2(4096);
-    sun->shadowCameraSize = vec2(100, 100);
+    sun->cameraResolution = vec2(4096*1.5);
+    sun->shadowCameraSize = vec2(300, 300);
     sun->activateShadows();
     scene.add(sun);
 
@@ -277,57 +275,21 @@ void Game::mainloop()
     //     .generate()
     //     ; 
     
+    ModelRef floor = newModel(GameGlobals::PBRHeightMap);
+    floor->setVao(readOBJ("ressources/models/ground/model.obj"));
+    floor->state.scaleScalar(1e2f).setPosition(vec3(0, 30, 0));
+
     Texture2D HeightMap = Texture2D().loadFromFileHDR("ressources/maps/RuggedTerrain.hdr")
         .setFormat(GL_RGB)
         .setInternalFormat(GL_RGB32F)
         .setPixelType(GL_FLOAT)
         .setWrapMode(GL_REPEAT) 
         .setFilter(GL_LINEAR)
-        .generate()
-    ;
-    // Texture2D HeightMap = Texture2D().loadFromFileKTX("ressources/maps/RuggedTerrain.ktx");
+        .generate();
     floor->setMap(HeightMap, 2);
 
-    // Texture2D DispMaps = Texture2D().loadFromFileHDR("ressources/models/ground/disp.hdr")
-    //     .setFormat(GL_RGB)
-    //     .setInternalFormat(GL_RGB32F)
-    //     .setPixelType(GL_FLOAT)
-    //     .setWrapMode(GL_REPEAT)
-    //     .generate()
-    // ;
-    // floor->setMap(DispMaps, 3);
-
-    floor->defaultMode = GL_PATCHES;
-    
-    // vec4 tmp(1);
-    // floor->baseUniforms.add(ShaderUniform(&tmp, 11));
-    // floor->baseUniforms.add(ShaderUniform(&tmp, 12));
-    floor->tessActivate(vec2(1, 16), vec2(10, 50));
-    floor->tessDisplacementFactors(25, 0.001);
-    floor->tessHeighFactors(1, 2);
-    floor->setMenu(menu, U"Ground Model");
-    floor->state.frustumCulled = false;
-    glPatchParameteri(GL_PATCH_VERTICES, 3);
-    scene.add(floor);
-
-
-    const std::string terrainTextures[] = 
-    {
-        "snowdrift1_ue", "limestone5-bl", "leafy-grass2-bl", "forest-floor-bl-1"
-    };
-
-    floor->setMap(Texture2D().loadFromFileKTX(
-        ("ressources/models/terrain/"+terrainTextures[2]+"CE.ktx2").c_str()), 
-        0);
-    floor->setMap(Texture2D().loadFromFileKTX(
-        ("ressources/models/terrain/"+terrainTextures[2]+"NRM.ktx2").c_str()), 
-        1);
-
-    floor->setMap(Texture2D()
-        .loadFromFile("ressources/models/terrain/terrainMap.png")
-        .setFormat(GL_RGBA)
-        .setInternalFormat(GL_RGBA8)
-        .generate(), 3);
+    const std::string terrainTextures[] = {
+        "snowdrift1_ue", "limestone5-bl", "leafy-grass2-bl", "forest-floor-bl-1"};
 
     int base = 4;
     int i = 0;
@@ -339,9 +301,19 @@ void Game::mainloop()
         floor->setMap(Texture2D().loadFromFileKTX(
             ("ressources/models/terrain/"+str+"NRM.ktx2").c_str()), 
             base + 4 + i);
-        
         i++;
     }
+
+
+
+    floor->defaultMode = GL_PATCHES;
+    floor->tessActivate(vec2(1, 12), vec2(10, 150));
+    floor->tessDisplacementFactors(30, 0.005);
+    floor->tessHeighFactors(1, 2);
+    floor->setMenu(menu, U"Ground Model");
+    floor->state.frustumCulled = false;
+    glPatchParameteri(GL_PATCH_VERTICES, 3);
+    scene.add(floor);
 
 
     state = AppState::run;
@@ -395,9 +367,15 @@ void Game::mainloop()
         scene.cull();
 
         if(wireframe)
+        {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        else    
+            skybox->state.hide = HIDE;
+        }
+        else
+        {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            skybox->state.hide = SHOW;
+        }    
 
         /* 3D Early Depth Testing */
         scene.depthOnlyDraw(*globals.currentCamera, true);
