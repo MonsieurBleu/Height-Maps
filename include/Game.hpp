@@ -5,6 +5,7 @@
 #include <FastUI.hpp>
 
 #include <GameGlobals.hpp>
+#include <Controllers.hpp>
 
 class Game final : public App
 {
@@ -23,11 +24,14 @@ private:
 
     /* Physics */
     // std::shared_ptr<FPSController> playerControler;
-    PhysicsEngine physicsEngine;
+    // PhysicsEngine physicsEngine;
     LimitTimer physicsTicks;
     void physicsLoop();
 
     SpectatorController spectator;
+
+    std::vector<std::shared_ptr<Controller>> controlers;
+    int currentController = 0;
 
     ObjectGroupRef helpers;
 

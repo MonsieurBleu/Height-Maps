@@ -133,6 +133,13 @@ void Game::init(int paramSample)
     globals.fpsLimiter.activate();
     globals.fpsLimiter.freq = 144.f;
     glfwSwapInterval(0);
+
+
+    controlers.push_back(std::make_shared<DroneController>());
+    controlers.push_back(std::make_shared<SpectatorController>());
+
+    currentController = 0;
+    setController(controlers[currentController].get());
 }
 
 bool Game::userInput(GLFWKeyInfo input)
@@ -144,6 +151,12 @@ bool Game::userInput(GLFWKeyInfo input)
     {
         switch (input.key)
         {
+        case GLFW_KEY_TAB :
+            currentController = currentController == (int)controlers.size()-1 ? 0 : currentController+1;
+            setController(controlers[currentController].get());
+            break;
+
+
         case GLFW_KEY_ESCAPE:
             state = quit;
             break;
@@ -216,9 +229,9 @@ void Game::physicsLoop()
     {
         physicsTicks.start();
 
-        physicsMutex.lock();
-        physicsEngine.update(1.f / physicsTicks.freq);
-        physicsMutex.unlock();
+        // physicsMutex.lock();
+        // physicsEngine.update(1.f / physicsTicks.freq); 
+        // physicsMutex.unlock();
 
         physicsTicks.waitForEnd();
     }
