@@ -4,6 +4,8 @@
 
 # Controles
 
+Changer de style de la caméra : TAB
+
 ZQSD/WASD  : Déplacer la caméra 
 
 Shift : Accélérer la caméra 
