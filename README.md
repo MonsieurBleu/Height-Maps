@@ -4,6 +4,8 @@
 
 # Controles
 
+FLêche directionnelle : changer la direction de la caméra
+
 Changer de style de la caméra : TAB
 
 ZQSD/WASD  : Déplacer la caméra 
