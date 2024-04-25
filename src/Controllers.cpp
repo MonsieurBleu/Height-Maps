@@ -39,3 +39,4 @@ void DroneController::update()
 
     globals.currentCamera->setPosition(cpos + dspeed*deplacementDir);
 }
+

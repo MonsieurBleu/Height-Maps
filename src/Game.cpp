@@ -263,8 +263,10 @@ void Game::mainloop()
     menu->state.setPosition(vec3(-0.9, 0.5, 0)).scaleScalar(0.65);
     globals.appTime.setMenuConst(menu);
     globals.cpuTime.setMenu(menu);
-    globals.gpuTime.setMenu(menu);
-    globals.fpsLimiter.setMenu(menu);
+    // globals.gpuTime.setMenu(menu);
+    // globals.fpsLimiter.setMenu(menu);
+
+
 
 
     SceneDirectionalLight sun = newDirectionLight(
@@ -334,10 +336,24 @@ void Game::mainloop()
 
     glLineWidth(1.0);
 
+    menu.push_back(
+        {FastUI_menuTitle(menu.ui, U"Camera"), FastUI_valueTab(menu.ui, {
+            FastUI_value(U"Direction"),
+            FastUI_value(camera.getDirectionAddr(),  U"\fyaw\t", U"°", FUI_vec3DirectionPhi),
+            FastUI_value(camera.getDirectionAddr(),  U"\fpitch\t", U"°", FUI_vec3DirectionTheta),
+            FastUI_value(U"Position"),
+            FastUI_value(&camera.getPositionAddr()->x, U"\fx\t"),
+            FastUI_value(&camera.getPositionAddr()->y, U"\fy\t"),
+            FastUI_value(&camera.getPositionAddr()->z, U"\fz\t")
+        })}
+    );
+
+
     menu.batch();
     scene2D.updateAllObjects();
     fuiBatch->batch();
 
+    menu.setCurrentTab(menu.size() - 1);
     
     std::shared_ptr<DirectionalLightHelper> sunhelper(new DirectionalLightHelper(sun));
     sunhelper->state.scaleScalar(10).setPosition(vec3(0, -20, 0));
