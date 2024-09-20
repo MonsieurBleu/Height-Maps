@@ -1,6 +1,5 @@
 #include <Game.hpp>
-#include <../Engine/include/Globals.hpp>
-#include <GameObject.hpp>
+#include <Globals.hpp>
 #include <CompilingOptions.hpp>
 #include <MathsUtils.hpp>
 #include <Audio.hpp>
@@ -48,63 +47,63 @@ void Game::init(int paramSample)
 
 
     /* Loading 3D Materials */
-    depthOnlyMaterial = MeshMaterial(
-        new ShaderProgram(
-            "shader/depthOnly.frag",
-            "shader/foward/basic.vert",
-            ""));
+    // depthOnlyMaterial = MeshMaterial(
+    //     new ShaderProgram(
+    //         "shader/depthOnly.frag",
+    //         "shader/foward/basic.vert",
+    //         ""));
 
-    depthOnlyStencilMaterial = MeshMaterial(
-        new ShaderProgram(
-            "shader/depthOnlyStencil.frag",
-            "shader/foward/basic.vert",
-            ""));
+    // depthOnlyStencilMaterial = MeshMaterial(
+    //     new ShaderProgram(
+    //         "shader/depthOnlyStencil.frag",
+    //         "shader/foward/basic.vert",
+    //         ""));
 
-    depthOnlyHeightMapMaterial = MeshMaterial(
-        new ShaderProgram(
-                "shader/foward/basic.frag",
-                "shader/special/lod.vert",
-                "shader/special/lod.tesc",
-                "shader/special/lod.tese",
-                globals.standartShaderUniform3D(),
-                "#define USING_TERRAIN_RENDERING"
-            ));
+    // depthOnlyHeightMapMaterial = MeshMaterial(
+    //     new ShaderProgram(
+    //             "shader/foward/basic.frag",
+    //             "shader/special/lod.vert",
+    //             "shader/special/lod.tesc",
+    //             "shader/special/lod.tese",
+    //             globals.standartShaderUniform3D(),
+    //             "#define USING_TERRAIN_RENDERING"
+    //         ));
 
-    GameGlobals::PBR = MeshMaterial(
-        new ShaderProgram(
-            "shader/foward/PBR.frag",
-            // "shader/clustered/clusterDebug.frag",
-            "shader/foward/basic.vert",
-            "",
-            globals.standartShaderUniform3D()));
+    // GameGlobals::PBR = MeshMaterial(
+    //     new ShaderProgram(
+    //         "shader/foward/PBR.frag",
+    //         // "shader/clustered/clusterDebug.frag",
+    //         "shader/foward/basic.vert",
+    //         "",
+    //         globals.standartShaderUniform3D()));
 
-    GameGlobals::PBRstencil = MeshMaterial(
-        new ShaderProgram(
-            "shader/foward/PBR.frag",
-            "shader/foward/basic.vert",
-            "",
-            globals.standartShaderUniform3D()));
+    // GameGlobals::PBRstencil = MeshMaterial(
+    //     new ShaderProgram(
+    //         "shader/foward/PBR.frag",
+    //         "shader/foward/basic.vert",
+    //         "",
+    //         globals.standartShaderUniform3D()));
 
-    GameGlobals::PBRHeightMap = MeshMaterial(
-        new ShaderProgram(
-            "shader/foward/PBR.frag",
-            "shader/special/lod.vert",
-            "shader/special/lod.tesc",
-            "shader/special/lod.tese",
-            globals.standartShaderUniform3D(),
-            "#define USING_TERRAIN_RENDERING"
-        ));
+    // GameGlobals::PBRHeightMap = MeshMaterial(
+    //     new ShaderProgram(
+    //         "shader/foward/PBR.frag",
+    //         "shader/special/lod.vert",
+    //         "shader/special/lod.tesc",
+    //         "shader/special/lod.tese",
+    //         globals.standartShaderUniform3D(),
+    //         "#define USING_TERRAIN_RENDERING"
+    //     ));
 
-    skyboxMaterial = MeshMaterial(
-        new ShaderProgram(
-            "shader/foward/Skybox.frag",
-            "shader/foward/basic.vert",
-            "",
-            globals.standartShaderUniform3D()));
+    // skyboxMaterial = MeshMaterial(
+    //     new ShaderProgram(
+    //         "shader/foward/Skybox.frag",
+    //         "shader/foward/basic.vert",
+    //         "",
+    //         globals.standartShaderUniform3D()));
 
-    GameGlobals::PBRstencil.depthOnly = depthOnlyStencilMaterial;
-    GameGlobals::PBRHeightMap.depthOnly = depthOnlyHeightMapMaterial;
-    scene.depthOnlyMaterial = depthOnlyMaterial;
+    // GameGlobals::PBRstencil.depthOnly = depthOnlyStencilMaterial;
+    // GameGlobals::PBRHeightMap.depthOnly = depthOnlyHeightMapMaterial;
+    // scene.depthOnlyMaterial = depthOnlyMaterial;
 
     /* UI */
     FUIfont = FontRef(new FontUFT8);
@@ -133,6 +132,8 @@ void Game::init(int paramSample)
     globals.fpsLimiter.activate();
     globals.fpsLimiter.freq = 144.f;
     glfwSwapInterval(0);
+
+    loadAllAssetsInfos("ressources");
 }
 
 bool Game::userInput(GLFWKeyInfo input)
@@ -174,12 +175,12 @@ bool Game::userInput(GLFWKeyInfo input)
             finalProcessingStage.reset();
             Bloom.getShader().reset();
             SSAO.getShader().reset();
-            depthOnlyMaterial->reset();
-            GameGlobals::PBR->reset();
-            GameGlobals::PBRstencil->reset();
-            GameGlobals::PBRHeightMap->reset();
-            GameGlobals::PBRHeightMap.depthOnly->reset();
-            skyboxMaterial->reset();
+            // depthOnlyMaterial->reset();
+            // GameGlobals::PBR->reset();
+            // GameGlobals::PBRstencil->reset();
+            // GameGlobals::PBRHeightMap->reset();
+            // GameGlobals::PBRHeightMap.depthOnly->reset();
+            // skyboxMaterial->reset();
 
 
             break;
@@ -207,77 +208,12 @@ bool Game::userInput(GLFWKeyInfo input)
     return true;
 };
 
-void Game::physicsLoop()
-{
-    physicsTicks.freq = 45.f;
-    physicsTicks.activate();
-
-    while (state != quit)
-    {
-        physicsTicks.start();
-
-        physicsMutex.lock();
-        physicsEngine.update(1.f / physicsTicks.freq);
-        physicsMutex.unlock();
-
-        physicsTicks.waitForEnd();
-    }
-}
 
 void Game::mainloop()
 {
-    /* Loading Models and setting up the scene */
-    ModelRef skybox = newModel(skyboxMaterial);
-    skybox->loadFromFolder("ressources/models/skybox/", true, false);
-
-    Texture2D reflectTexture = Texture2D().loadFromFile("ressources/models/skybox/quarry_cloudy_2k.jpg").generate();
-
-    // skybox->invertFaces = true;
-    skybox->depthWrite = true;
-    skybox->state.frustumCulled = false;
-    skybox->state.scaleScalar(1E6);
-    scene.add(skybox);
-
-
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_DEPTH_TEST);
     glLineWidth(3.0);
-
-    /* Setting up the UI */
-    FastUI_context ui(fuiBatch, FUIfont, scene2D, defaultFontMaterial);
-    FastUI_valueMenu menu(ui, {});
-
-    menu->state.setPosition(vec3(-0.9, 0.5, 0)).scaleScalar(0.65);
-    globals.appTime.setMenuConst(menu);
-    globals.cpuTime.setMenu(menu);
-    globals.gpuTime.setMenu(menu);
-    globals.fpsLimiter.setMenu(menu);
-
-
-    SceneDirectionalLight sun = newDirectionLight(
-        DirectionLight()
-            .setColor(vec3(143, 107, 71) / vec3(255))
-            .setDirection(normalize(vec3(-1.0, -1.0, 0.0)))
-            .setIntensity(1.0));
-
-    sun->cameraResolution = vec2(4096*1.5);
-    sun->shadowCameraSize = vec2(300, 300);
-    sun->activateShadows();
-    scene.add(sun);
-
-    sun->setMenu(menu, U"Sun");
-   
-    // Texture2D HeightMaps = Texture2D().loadFromFileHDR("ressources/maps/RuggedTerrain.png")
-    //     .setFormat(GL_RGB)
-    //     .setInternalFormat(GL_RGB8)
-    //     .setPixelType(GL_UNSIGNED_BYTE)
-    //     .setWrapMode(GL_CLAMP_TO_BORDER)
-    //     .generate()
-    //     ; 
-    
-    ModelRef floor = newModel(GameGlobals::PBRHeightMap);
-    floor->setVao(readOBJ("ressources/models/ground/model.obj"));
-    floor->state.scaleScalar(1e2f).setPosition(vec3(0, 30, 0));
 
     Texture2D HeightMap = Texture2D().loadFromFileHDR("ressources/maps/RuggedTerrain.hdr")
         .setFormat(GL_RGB)
@@ -286,34 +222,6 @@ void Game::mainloop()
         .setWrapMode(GL_REPEAT) 
         .setFilter(GL_LINEAR)
         .generate();
-    floor->setMap(HeightMap, 2);
-
-    const std::string terrainTextures[] = {
-        "snowdrift1_ue", "limestone5-bl", "leafy-grass2-bl", "forest-floor-bl-1"};
-
-    int base = 4;
-    int i = 0;
-    for(auto str : terrainTextures)
-    {
-        floor->setMap(Texture2D().loadFromFileKTX(
-            ("ressources/models/terrain/"+str+"CE.ktx2").c_str()), 
-            base + i);
-        floor->setMap(Texture2D().loadFromFileKTX(
-            ("ressources/models/terrain/"+str+"NRM.ktx2").c_str()), 
-            base + 4 + i);
-        i++;
-    }
-
-
-
-    floor->defaultMode = GL_PATCHES;
-    floor->tessActivate(vec2(1, 12), vec2(10, 150));
-    floor->tessDisplacementFactors(30, 0.005);
-    floor->tessHeighFactors(1, 2);
-    floor->setMenu(menu, U"Ground Model");
-    floor->state.frustumCulled = false;
-    glPatchParameteri(GL_PATCH_VERTICES, 3);
-    scene.add(floor);
 
 
     state = AppState::run;
@@ -321,14 +229,37 @@ void Game::mainloop()
 
     glLineWidth(1.0);
 
+
+    // ModelRef sprite = newModel(Loader<MeshMaterial>::get("sprite"));
+    // sprite->setMap(0, Loader<Texture2D>::get("icon"));
+
+    // GenericSharedBuffer spritegeo;
+    // GenericSharedBuffer spriteuv;
+
+    // MeshVao spritevao(new VertexAttributeGroup({
+        
+    //         VertexAttribute(spritegeo, )
+        
+    // }));
+    // sprite->setVao();
+
+    ObjectGroupRef sprite = Loader<ObjectGroup>::get("sprite").copy();
+    scene2D.add(sprite);
+
+    FastUI_context ui(fuiBatch, FUIfont, scene2D, defaultFontMaterial);
+    FastUI_valueMenu menu(ui, {});
+
+    menu->state.setPosition(vec3(-0.9, 0.5, 0)).scaleScalar(0.7);
+    globals.appTime.setMenuConst(menu);
+    globals.simulationTime.setMenu(menu);
+
+    sprite->setMenu(menu, U"sprite");
+
+
     menu.batch();
     scene2D.updateAllObjects();
     fuiBatch->batch();
-
-    
-    std::shared_ptr<DirectionalLightHelper> sunhelper(new DirectionalLightHelper(sun));
-    sunhelper->state.scaleScalar(10).setPosition(vec3(0, -20, 0));
-    scene.add(sunhelper);
+    fuiBatch->state.frustumCulled = false;
 
     /* Main Loop */
     while (state != AppState::quit)
@@ -349,50 +280,49 @@ void Game::mainloop()
         scene2D.updateAllObjects();
         fuiBatch->batch();
         screenBuffer2D.activate();
-        fuiBatch->draw();
         scene2D.cull();
         scene2D.draw();
         screenBuffer2D.deactivate();
 
         /* 3D Pre-Render */
-        glDisable(GL_FRAMEBUFFER_SRGB);
-        glDisable(GL_BLEND);
-        glDepthFunc(GL_GREATER);
-        glEnable(GL_DEPTH_TEST);
+        // glDisable(GL_FRAMEBUFFER_SRGB);
+        // glDisable(GL_BLEND);
+        // glDepthFunc(GL_GREATER);
+        // glEnable(GL_DEPTH_TEST);
 
-        scene.updateAllObjects();
-        scene.generateShadowMaps();
-        renderBuffer.activate();
+        // scene.updateAllObjects();
+        // scene.generateShadowMaps();
+        // renderBuffer.activate();
 
-        scene.cull();
+        // scene.cull();
 
-        if(wireframe)
-        {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            skybox->state.hide = HIDE;
-        }
-        else
-        {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            skybox->state.hide = SHOW;
-        }    
+        // if(wireframe)
+        // {
+        //     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        //     skybox->state.hide = HIDE;
+        // }
+        // else
+        // {
+        //     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        //     skybox->state.hide = SHOW;
+        // }    
 
         /* 3D Early Depth Testing */
-        scene.depthOnlyDraw(*globals.currentCamera, true);
-        glDepthFunc(GL_EQUAL);
+        // scene.depthOnlyDraw(*globals.currentCamera, true);
+        // glDepthFunc(GL_EQUAL);
 
-        /* 3D Render */
-        // skybox->bindMap(0, 4);
-        reflectTexture.bind(4);
-        scene.genLightBuffer();
-        scene.draw();
-        renderBuffer.deactivate();
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        // /* 3D Render */
+        // // skybox->bindMap(0, 4);
+        // reflectTexture.bind(4);
+        // scene.genLightBuffer();
+        // scene.draw();
+        // renderBuffer.deactivate();
+        // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         /* Post Processing */
-        renderBuffer.bindTextures();
-        SSAO.render(*globals.currentCamera);
-        Bloom.render(*globals.currentCamera);
+        // renderBuffer.bindTextures();
+        // SSAO.render(*globals.currentCamera);
+        // Bloom.render(*globals.currentCamera);
 
         /* Final Screen Composition */
         glViewport(0, 0, globals.windowWidth(), globals.windowHeight());

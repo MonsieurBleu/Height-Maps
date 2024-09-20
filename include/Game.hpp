@@ -1,6 +1,6 @@
 #pragma once
-#include <../Engine/include/App.hpp>
-#include <demos/FPS/FPSController.hpp>
+
+#include <App.hpp>
 #include <Fonts.hpp>
 #include <FastUI.hpp>
 
@@ -9,23 +9,12 @@
 class Game final : public App
 {
 private:
-    /* 3D Materials */
-    MeshMaterial skyboxMaterial;
-    MeshMaterial depthOnlyMaterial;
-    MeshMaterial depthOnlyStencilMaterial;
-    MeshMaterial depthOnlyHeightMapMaterial;
 
     /* Fast-UI */
     FontRef FUIfont;    
     MeshMaterial defaultFontMaterial;
     MeshMaterial defaultSUIMaterial;
     SimpleUiTileBatchRef fuiBatch;
-
-    /* Physics */
-    // std::shared_ptr<FPSController> playerControler;
-    PhysicsEngine physicsEngine;
-    LimitTimer physicsTicks;
-    void physicsLoop();
 
     SpectatorController spectator;
 

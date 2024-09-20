@@ -1,0 +1,13 @@
+sprite
+    :   meshes 
+        :   Dummy_Surface
+            :   mesh      | sprite
+            :   material  | sprite
+            :   texture 0 | icon
+            ;
+        ;
+    :   state 
+        :   rotation "0 0 0"
+        ;
+    ;
+;
